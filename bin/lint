@@ -41,13 +41,15 @@ if [ -f "package.json" ]; then
         if $fix; then
             cmd="$cmd --fix"
         fi
-        if ! run_command "$cmd" "Linting JavaScript/TypeScript"; then
+        echo "→ Linting JavaScript/TypeScript"
+        if ! $cmd; then
             success=false
         fi
     fi
-    
+
     if command_exists tsc && [ -f "tsconfig.json" ]; then
-        if ! run_command "npx tsc --noEmit" "Type checking TypeScript"; then
+        echo "→ Type checking TypeScript"
+        if ! npx tsc --noEmit; then
             success=false
         fi
     fi
@@ -59,21 +61,25 @@ if command_exists ruff; then
     if $fix; then
         cmd="$cmd --fix"
     fi
-    if ! run_command "$cmd ." "Linting Python with ruff"; then
+    echo "→ Linting Python with ruff"
+    if ! $cmd .; then
         success=false
     fi
 elif command_exists flake8; then
-    if ! run_command "flake8 ." "Linting Python with flake8"; then
+    echo "→ Linting Python with flake8"
+    if ! flake8 .; then
         success=false
     fi
 elif command_exists pylint; then
-    if ! run_command "pylint **/*.py" "Linting Python with pylint"; then
+    echo "→ Linting Python with pylint"
+    if ! pylint ./**/*.py; then
         success=false
     fi
 fi
 
 if command_exists mypy && [ -f "mypy.ini" ]; then
-    if ! run_command "mypy ." "Type checking Python"; then
+    echo "→ Type checking Python"
+    if ! mypy .; then
         success=false
     fi
 fi
@@ -84,7 +90,8 @@ if [ -f "Gemfile" ] && command_exists rubocop; then
     if $fix; then
         cmd="$cmd --auto-correct"
     fi
-    if ! run_command "$cmd" "Linting Ruby"; then
+    echo "→ Linting Ruby"
+    if ! $cmd; then
         success=false
     fi
 fi
@@ -96,11 +103,13 @@ if [ -f "go.mod" ]; then
         if $fix; then
             cmd="$cmd --fix"
         fi
-        if ! run_command "$cmd" "Linting Go with golangci-lint"; then
+        echo "→ Linting Go with golangci-lint"
+        if ! $cmd; then
             success=false
         fi
     else
-        if ! run_command "go vet ./..." "Running go vet"; then
+        echo "→ Running go vet"
+        if ! go vet ./...; then
             success=false
         fi
     fi
@@ -108,28 +117,32 @@ fi
 
 # Rust
 if [ -f "Cargo.toml" ] && command_exists cargo; then
-    if ! run_command "cargo clippy -- -D warnings" "Linting Rust with clippy"; then
+    echo "→ Linting Rust with clippy"
+    if ! cargo clippy -- -D warnings; then
         success=false
     fi
 fi
 
 # Shell scripts
 if command_exists shellcheck; then
-    if ! run_command "shellcheck bin/*" "Linting shell scripts"; then
+    echo "→ Linting shell scripts"
+    if ! shellcheck bin/*; then
         success=false
     fi
 fi
 
 # Markdown
 if command_exists markdownlint; then
-    if ! run_command "markdownlint '**/*.md'" "Linting Markdown"; then
+    echo "→ Linting Markdown"
+    if ! markdownlint '**/*.md'; then
         success=false
     fi
 fi
 
 # YAML
 if command_exists yamllint; then
-    if ! run_command "yamllint ." "Linting YAML"; then
+    echo "→ Linting YAML"
+    if ! yamllint .; then
         success=false
     fi
 fi

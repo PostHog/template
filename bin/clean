@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #/ Usage: bin/clean
 #/ Description: Removes build artifacts and temporary files
-#/ 
+#/
 #/ This script removes common build artifacts, caches, and temporary files.
 #/ It's safe to run and won't delete source code or configuration.
 
@@ -14,68 +14,97 @@ print_color blue "Cleaning build artifacts and temporary files..."
 # Node.js
 if [ -d "node_modules" ]; then
     if [ -d "dist" ]; then
-        run_command "rm -rf dist" "Removing dist directory"
+        echo "→ Removing dist directory"
+        rm -rf dist
     fi
     if [ -d "build" ]; then
-        run_command "rm -rf build" "Removing build directory"
+        echo "→ Removing build directory"
+        rm -rf build
     fi
     if [ -d ".next" ]; then
-        run_command "rm -rf .next" "Removing Next.js build"
+        echo "→ Removing Next.js build"
+        rm -rf .next
     fi
     if [ -d "coverage" ]; then
-        run_command "rm -rf coverage" "Removing coverage reports"
+        echo "→ Removing coverage reports"
+        rm -rf coverage
     fi
-    run_command "rm -rf *.log" "Removing log files"
+    echo "→ Removing log files"
+    rm -rf ./*.log
 fi
 
 # Python
 if [ -d "__pycache__" ] || [ -d ".pytest_cache" ]; then
-    run_command "find . -type d -name '__pycache__' -exec rm -rf {} +" "Removing Python cache"
-    run_command "find . -type f -name '*.pyc' -delete" "Removing compiled Python files"
-    run_command "rm -rf .pytest_cache" "Removing pytest cache"
-    run_command "rm -rf .mypy_cache" "Removing mypy cache"
-    run_command "rm -rf .ruff_cache" "Removing ruff cache"
-    run_command "rm -rf dist build *.egg-info" "Removing Python build artifacts"
-    run_command "rm -rf .coverage coverage.xml htmlcov" "Removing coverage reports"
+    echo "→ Removing Python cache"
+    find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+    echo "→ Removing compiled Python files"
+    find . -type f -name '*.pyc' -delete 2>/dev/null || true
+    echo "→ Removing pytest cache"
+    rm -rf .pytest_cache
+    echo "→ Removing mypy cache"
+    rm -rf .mypy_cache
+    echo "→ Removing ruff cache"
+    rm -rf .ruff_cache
+    echo "→ Removing Python build artifacts"
+    rm -rf dist build ./*.egg-info
+    echo "→ Removing coverage reports"
+    rm -rf .coverage coverage.xml htmlcov
 fi
 
 # Ruby
 if [ -f "Gemfile" ]; then
-    run_command "rm -rf coverage" "Removing coverage reports"
-    run_command "rm -rf .bundle" "Removing bundle config"
-    run_command "rm -rf vendor/bundle" "Removing vendored gems"
+    echo "→ Removing coverage reports"
+    rm -rf coverage
+    echo "→ Removing bundle config"
+    rm -rf .bundle
+    echo "→ Removing vendored gems"
+    rm -rf vendor/bundle
 fi
 
 # .NET
 if compgen -G "*.sln" > /dev/null || compgen -G "*.csproj" > /dev/null; then
-    run_command "find . -type d -name 'bin' -exec rm -rf {} +" "Removing bin directories"
-    run_command "find . -type d -name 'obj' -exec rm -rf {} +" "Removing obj directories"
-    run_command "rm -rf TestResults" "Removing test results"
+    echo "→ Removing bin directories"
+    find . -type d -name 'bin' -exec rm -rf {} + 2>/dev/null || true
+    echo "→ Removing obj directories"
+    find . -type d -name 'obj' -exec rm -rf {} + 2>/dev/null || true
+    echo "→ Removing test results"
+    rm -rf TestResults
 fi
 
 # Go
 if [ -f "go.mod" ]; then
-    run_command "go clean -cache -testcache" "Cleaning Go cache"
-    run_command "rm -rf bin" "Removing bin directory"
+    echo "→ Cleaning Go cache"
+    go clean -cache -testcache
+    echo "→ Removing bin directory"
+    rm -rf bin
 fi
 
 # Rust
 if [ -f "Cargo.toml" ]; then
-    run_command "cargo clean" "Cleaning Rust build"
+    echo "→ Cleaning Rust build"
+    cargo clean
 fi
 
 # Java
 if [ -f "pom.xml" ] || [ -f "build.gradle" ]; then
-    run_command "rm -rf target" "Removing Maven target"
-    run_command "rm -rf build" "Removing Gradle build"
-    run_command "rm -rf .gradle" "Removing Gradle cache"
+    echo "→ Removing Maven target"
+    rm -rf target
+    echo "→ Removing Gradle build"
+    rm -rf build
+    echo "→ Removing Gradle cache"
+    rm -rf .gradle
 fi
 
 # General
-run_command "rm -rf .DS_Store" "Removing macOS files"
-run_command "rm -rf .vscode/settings.json" "Removing VS Code settings"
-run_command "rm -rf .idea" "Removing IntelliJ IDEA files"
-run_command "find . -name '*.swp' -delete" "Removing vim swap files"
-run_command "find . -name '*~' -delete" "Removing backup files"
+echo "→ Removing macOS files"
+rm -rf .DS_Store
+echo "→ Removing VS Code settings"
+rm -rf .vscode/settings.json
+echo "→ Removing IntelliJ IDEA files"
+rm -rf .idea
+echo "→ Removing vim swap files"
+find . -name '*.swp' -delete 2>/dev/null || true
+echo "→ Removing backup files"
+find . -name '*~' -delete 2>/dev/null || true
 
 print_color green "✓ Clean complete"

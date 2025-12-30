@@ -47,17 +47,19 @@ if [ -f "package.json" ]; then
         else
             cmd="$cmd --write"
         fi
-        if ! run_command "$cmd ." "Formatting JavaScript/TypeScript"; then
+        echo "→ Formatting JavaScript/TypeScript"
+        if ! $cmd .; then
             success=false
         fi
     fi
-    
+
     if grep -q '"eslint"' package.json || [ -f ".eslintrc" ] || [ -f ".eslintrc.json" ]; then
         cmd="npx eslint"
         if ! $check; then
             cmd="$cmd --fix"
         fi
-        if ! run_command "$cmd ." "Linting JavaScript/TypeScript"; then
+        echo "→ Linting JavaScript/TypeScript"
+        if ! $cmd .; then
             success=false
         fi
     fi
@@ -70,7 +72,8 @@ if command_exists black || command_exists ruff; then
         if $check; then
             cmd="$cmd --check"
         fi
-        if ! run_command "$cmd ." "Formatting Python with ruff"; then
+        echo "→ Formatting Python with ruff"
+        if ! $cmd .; then
             success=false
         fi
     elif command_exists black; then
@@ -78,17 +81,19 @@ if command_exists black || command_exists ruff; then
         if $check; then
             cmd="$cmd --check"
         fi
-        if ! run_command "$cmd ." "Formatting Python with black"; then
+        echo "→ Formatting Python with black"
+        if ! $cmd .; then
             success=false
         fi
     fi
-    
+
     if command_exists isort; then
         cmd="isort"
         if $check; then
             cmd="$cmd --check-only"
         fi
-        if ! run_command "$cmd ." "Sorting Python imports"; then
+        echo "→ Sorting Python imports"
+        if ! $cmd .; then
             success=false
         fi
     fi
@@ -100,7 +105,8 @@ if [ -f "Gemfile" ] && command_exists rubocop; then
     if ! $check; then
         cmd="$cmd --auto-correct"
     fi
-    if ! run_command "$cmd" "Formatting Ruby"; then
+    echo "→ Formatting Ruby"
+    if ! $cmd; then
         success=false
     fi
 fi
@@ -111,18 +117,20 @@ if command_exists dotnet && (compgen -G "*.sln" > /dev/null || compgen -G "*.csp
     if $check; then
         args+=("--verify-no-changes")
     fi
-    
+
     # Find solution or project file
     if compgen -G "*.sln" > /dev/null; then
-        target=$(ls *.sln | head -1)
+        target=$(ls ./*.sln | head -1)
     else
         target="."
     fi
-    
-    if ! run_command "dotnet format whitespace \"$target\" ${args[*]}" "Formatting .NET whitespace"; then
+
+    echo "→ Formatting .NET whitespace"
+    if ! dotnet format whitespace "$target" "${args[@]}"; then
         success=false
     fi
-    if ! run_command "dotnet format style \"$target\" ${args[*]}" "Formatting .NET style"; then
+    echo "→ Formatting .NET style"
+    if ! dotnet format style "$target" "${args[@]}"; then
         success=false
     fi
 fi
@@ -136,9 +144,10 @@ if [ -f "go.mod" ] && command_exists gofmt; then
             success=false
         fi
     else
-        run_command "gofmt -w ." "Formatting Go"
+        echo "→ Formatting Go"
+        gofmt -w .
     fi
-    
+
     if command_exists goimports; then
         if $check; then
             if [ -n "$(goimports -l .)" ]; then
@@ -146,7 +155,8 @@ if [ -f "go.mod" ] && command_exists gofmt; then
                 success=false
             fi
         else
-            run_command "goimports -w ." "Formatting Go imports"
+            echo "→ Formatting Go imports"
+            goimports -w .
         fi
     fi
 fi
@@ -157,7 +167,8 @@ if [ -f "Cargo.toml" ] && command_exists cargo; then
     if $check; then
         cmd="$cmd -- --check"
     fi
-    if ! run_command "$cmd" "Formatting Rust"; then
+    echo "→ Formatting Rust"
+    if ! $cmd; then
         success=false
     fi
 fi
@@ -170,7 +181,8 @@ if command_exists shfmt; then
     else
         cmd="$cmd -w"
     fi
-    if ! run_command "$cmd ." "Formatting shell scripts"; then
+    echo "→ Formatting shell scripts"
+    if ! $cmd .; then
         success=false
     fi
 fi

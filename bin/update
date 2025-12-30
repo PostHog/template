@@ -1,44 +1,53 @@
 #!/usr/bin/env bash
 #/ Usage: bin/update
 #/ Description: Updates project dependencies to their latest versions
-#/ 
+#/
 #/ This script updates dependencies while respecting version constraints.
 #/ Always run tests after updating to ensure nothing broke.
 
 source bin/helpers/_utils.sh
 set_source_and_root_dir
 parse_common_args "$@"
+set -e
 
 print_color blue "Updating project dependencies..."
 
 # Node.js
 if [ -f "package.json" ]; then
     if [ -f "package-lock.json" ]; then
-        run_command "npm update" "Updating Node.js dependencies"
-        run_command "npm audit fix" "Fixing security vulnerabilities"
+        echo "→ Updating Node.js dependencies"
+        npm update
+        echo "→ Fixing security vulnerabilities"
+        npm audit fix
     elif [ -f "yarn.lock" ]; then
-        run_command "yarn upgrade" "Updating Node.js dependencies with Yarn"
+        echo "→ Updating Node.js dependencies with Yarn"
+        yarn upgrade
     elif [ -f "pnpm-lock.yaml" ]; then
-        run_command "pnpm update" "Updating Node.js dependencies with pnpm"
+        echo "→ Updating Node.js dependencies with pnpm"
+        pnpm update
     fi
 fi
 
 # Python
 if [ -f "requirements.txt" ]; then
     if command_exists pip-compile; then
-        run_command "pip-compile --upgrade requirements.in" "Updating Python dependencies"
+        echo "→ Updating Python dependencies"
+        pip-compile --upgrade requirements.in
     else
         print_color yellow "Consider using pip-tools for better dependency management"
     fi
 elif [ -f "pyproject.toml" ] && command_exists poetry; then
-    run_command "poetry update" "Updating Python dependencies with Poetry"
+    echo "→ Updating Python dependencies with Poetry"
+    poetry update
 elif [ -f "Pipfile" ] && command_exists pipenv; then
-    run_command "pipenv update" "Updating Python dependencies with Pipenv"
+    echo "→ Updating Python dependencies with Pipenv"
+    pipenv update
 fi
 
 # Ruby
 if [ -f "Gemfile" ]; then
-    run_command "bundle update" "Updating Ruby dependencies"
+    echo "→ Updating Ruby dependencies"
+    bundle update
 fi
 
 # .NET
@@ -46,7 +55,8 @@ if compgen -G "*.sln" > /dev/null || compgen -G "*.csproj" > /dev/null; then
     # Update NuGet packages
     if compgen -G "*.sln" > /dev/null; then
         for sln in *.sln; do
-            run_command "dotnet list \"$sln\" package --outdated" "Checking outdated packages"
+            echo "→ Checking outdated packages"
+            dotnet list "$sln" package --outdated
         done
     fi
     print_color yellow "Use 'dotnet add package <name>' to update specific packages"
@@ -54,13 +64,16 @@ fi
 
 # Go
 if [ -f "go.mod" ]; then
-    run_command "go get -u ./..." "Updating Go dependencies"
-    run_command "go mod tidy" "Tidying Go modules"
+    echo "→ Updating Go dependencies"
+    go get -u ./...
+    echo "→ Tidying Go modules"
+    go mod tidy
 fi
 
 # Rust
 if [ -f "Cargo.toml" ]; then
-    run_command "cargo update" "Updating Rust dependencies"
+    echo "→ Updating Rust dependencies"
+    cargo update
 fi
 
 # Run bootstrap to ensure everything is properly installed

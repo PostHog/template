@@ -30,15 +30,17 @@ while (( "$#" )); do
     esac
 done
 
+set -e
+
 print_color blue "Building project..."
 
 # Node.js
 if [ -f "package.json" ] && grep -q '"build"' package.json; then
-    cmd="npm run build"
     if [ -n "$output" ]; then
         export BUILD_OUTPUT="$output"
     fi
-    run_command "$cmd" "Building Node.js project"
+    echo "→ Building Node.js project"
+    npm run build
 fi
 
 # TypeScript
@@ -47,22 +49,26 @@ if [ -f "tsconfig.json" ] && ! grep -q '"build"' package.json 2>/dev/null; then
     if [ -n "$output" ]; then
         cmd="$cmd --outDir $output"
     fi
-    run_command "$cmd" "Building TypeScript project"
+    echo "→ Building TypeScript project"
+    $cmd
 fi
 
 # Python
 if [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
     if [ -f "pyproject.toml" ] && command_exists poetry; then
-        run_command "poetry build" "Building Python package with Poetry"
+        echo "→ Building Python package with Poetry"
+        poetry build
     else
-        run_command "python3 -m build" "Building Python package"
+        echo "→ Building Python package"
+        python3 -m build
     fi
 fi
 
 # Ruby
 if [ -f "Gemfile" ] && [ -f "Rakefile" ]; then
     if grep -q "build" Rakefile; then
-        run_command "bundle exec rake build" "Building Ruby project"
+        echo "→ Building Ruby project"
+        bundle exec rake build
     fi
 fi
 
@@ -72,39 +78,44 @@ if compgen -G "*.sln" > /dev/null || compgen -G "*.csproj" > /dev/null; then
     if [ -n "$output" ]; then
         cmd="$cmd --output $output"
     fi
-    run_command "$cmd" "Building .NET project"
+    echo "→ Building .NET project"
+    $cmd
 fi
 
 # Go
 if [ -f "go.mod" ]; then
     output_file="${output:-./bin/app}"
     mkdir -p "$(dirname "$output_file")"
-    run_command "go build -o $output_file" "Building Go project"
+    echo "→ Building Go project"
+    go build -o "$output_file"
 fi
 
 # Rust
 if [ -f "Cargo.toml" ]; then
-    cmd="cargo build --release"
     if [ -n "$output" ]; then
         export CARGO_TARGET_DIR="$output"
     fi
-    run_command "$cmd" "Building Rust project"
+    echo "→ Building Rust project"
+    cargo build --release
 fi
 
 # Java/Maven
 if [ -f "pom.xml" ]; then
-    run_command "mvn clean package" "Building Maven project"
+    echo "→ Building Maven project"
+    mvn clean package
 fi
 
 # Java/Gradle
 if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-    run_command "./gradlew build" "Building Gradle project"
+    echo "→ Building Gradle project"
+    ./gradlew build
 fi
 
 # Docker
 if [ -f "Dockerfile" ]; then
     image_name="${PROJECT_NAME:-app}"
-    run_command "docker build -t $image_name ." "Building Docker image"
+    echo "→ Building Docker image"
+    docker build -t "$image_name" .
 fi
 
 print_color green "✓ Build complete"
