@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #/ Usage: bin/console
 #/ Description: Starts an interactive console/REPL for the project
-#/ 
+#/
 #/ This provides an interactive environment with the project loaded.
 
 source bin/helpers/_utils.sh
@@ -13,43 +13,53 @@ print_color blue "Starting interactive console..."
 # Node.js
 if [ -f "package.json" ]; then
     if grep -q '"console"' package.json; then
-        run_command "npm run console" "Starting custom console"
+        echo "→ Starting custom console"
+        exec npm run console
     else
-        run_command "node" "Starting Node.js REPL"
+        echo "→ Starting Node.js REPL"
+        exec node
     fi
 
 # Python
 elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ] || [ -f "Pipfile" ]; then
     if [ -f "manage.py" ]; then
         # Django shell
-        run_command "python3 manage.py shell" "Starting Django shell"
+        echo "→ Starting Django shell"
+        exec python3 manage.py shell
     elif command_exists ipython; then
-        run_command "ipython" "Starting IPython"
+        echo "→ Starting IPython"
+        exec ipython
     else
-        run_command "python3" "Starting Python REPL"
+        echo "→ Starting Python REPL"
+        exec python3
     fi
 
 # Ruby
 elif [ -f "Gemfile" ]; then
     if grep -q "rails" Gemfile && [ -f "bin/rails" ]; then
-        run_command "bin/rails console" "Starting Rails console"
+        echo "→ Starting Rails console"
+        exec bin/rails console
     elif command_exists irb; then
-        run_command "bundle exec irb" "Starting Ruby IRB"
+        echo "→ Starting Ruby IRB"
+        exec bundle exec irb
     fi
 
 # .NET
 elif compgen -G "*.csproj" > /dev/null; then
     if command_exists dotnet-script; then
-        run_command "dotnet-script" "Starting C# interactive"
+        echo "→ Starting C# interactive"
+        exec dotnet-script
     else
         print_color yellow "Install dotnet-script for interactive C#: dotnet tool install -g dotnet-script"
-        run_command "dotnet run" "Running project"
+        echo "→ Running project"
+        exec dotnet run
     fi
 
 # Go
 elif [ -f "go.mod" ]; then
     if command_exists gore; then
-        run_command "gore" "Starting Go REPL"
+        echo "→ Starting Go REPL"
+        exec gore
     else
         print_color yellow "Install gore for Go REPL: go install github.com/x-motemen/gore/cmd/gore@latest"
     fi
@@ -57,7 +67,8 @@ elif [ -f "go.mod" ]; then
 # Rust
 elif [ -f "Cargo.toml" ]; then
     if command_exists evcxr; then
-        run_command "evcxr" "Starting Rust REPL"
+        echo "→ Starting Rust REPL"
+        exec evcxr
     else
         print_color yellow "Install evcxr for Rust REPL: cargo install evcxr_repl"
     fi

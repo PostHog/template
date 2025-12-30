@@ -38,6 +38,8 @@ while (( "$#" )); do
     esac
 done
 
+set -e
+
 print_color blue "Running tests..."
 
 # Node.js
@@ -50,7 +52,8 @@ if [ -f "package.json" ]; then
         if $watch && grep -q '"test:watch"' package.json; then
             cmd="npm run test:watch"
         fi
-        run_command "$cmd ${test_args[*]}" "Running Node.js tests"
+        echo "→ Running Node.js tests"
+        $cmd "${test_args[@]}"
     fi
 fi
 
@@ -64,19 +67,22 @@ if [ -f "pytest.ini" ] || [ -f "setup.cfg" ] || [ -f "pyproject.toml" ]; then
         if $watch && command_exists ptw; then
             cmd="ptw"
         fi
-        run_command "$cmd ${test_args[*]}" "Running Python tests"
+        echo "→ Running Python tests"
+        $cmd "${test_args[@]}"
     fi
 elif [ -d "tests" ] || [ -d "test" ]; then
-    run_command "python3 -m unittest discover ${test_args[*]}" "Running Python tests"
+    echo "→ Running Python tests"
+    python3 -m unittest discover "${test_args[@]}"
 fi
 
 # Ruby
 if [ -f "Gemfile" ] && grep -q "rspec" Gemfile; then
     cmd="bundle exec rspec"
     if $coverage; then
-        cmd="COVERAGE=true $cmd"
+        export COVERAGE=true
     fi
-    run_command "$cmd ${test_args[*]}" "Running Ruby tests"
+    echo "→ Running Ruby tests"
+    $cmd "${test_args[@]}"
 fi
 
 # .NET
@@ -85,7 +91,8 @@ if compgen -G "*.sln" > /dev/null || compgen -G "*Tests.csproj" > /dev/null; the
     if $coverage; then
         cmd="$cmd --collect:\"XPlat Code Coverage\""
     fi
-    run_command "$cmd ${test_args[*]}" "Running .NET tests"
+    echo "→ Running .NET tests"
+    $cmd "${test_args[@]}"
 fi
 
 # Go
@@ -97,7 +104,8 @@ if [ -f "go.mod" ]; then
     if [ "$VERBOSE" = "1" ]; then
         cmd="$cmd -v"
     fi
-    run_command "$cmd ${test_args[*]}" "Running Go tests"
+    echo "→ Running Go tests"
+    $cmd "${test_args[@]}"
 fi
 
 # Rust
@@ -106,7 +114,8 @@ if [ -f "Cargo.toml" ]; then
     if [ "$VERBOSE" = "1" ]; then
         cmd="$cmd --verbose"
     fi
-    run_command "$cmd ${test_args[*]}" "Running Rust tests"
+    echo "→ Running Rust tests"
+    $cmd "${test_args[@]}"
 fi
 
 print_color green "✓ Tests completed"

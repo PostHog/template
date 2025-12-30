@@ -1,56 +1,67 @@
 #!/usr/bin/env bash
 #/ Usage: bin/bootstrap
 #/ Description: Resolves all dependencies that the project requires to run
-#/ 
+#/
 #/ This script is idempotent and safe to run multiple times.
 
 source bin/helpers/_utils.sh
 set_source_and_root_dir
 parse_common_args "$@"
+set -e
 
 print_color blue "Bootstrapping project dependencies..."
 
 # Node.js
 if [ -f "package.json" ]; then
     if [ -f "package-lock.json" ]; then
-        run_command "npm ci" "Installing Node.js dependencies (locked)"
+        echo "→ Installing Node.js dependencies (locked)"
+        npm ci
     else
-        run_command "npm install" "Installing Node.js dependencies"
+        echo "→ Installing Node.js dependencies"
+        npm install
     fi
 fi
 
 # Python
 if [ -f "requirements.txt" ]; then
-    run_command "python3 -m pip install -r requirements.txt" "Installing Python dependencies"
+    echo "→ Installing Python dependencies"
+    python3 -m pip install -r requirements.txt
 elif [ -f "pyproject.toml" ]; then
     if command_exists poetry; then
-        run_command "poetry install" "Installing Python dependencies with Poetry"
+        echo "→ Installing Python dependencies with Poetry"
+        poetry install
     else
-        run_command "python3 -m pip install ." "Installing Python dependencies"
+        echo "→ Installing Python dependencies"
+        python3 -m pip install .
     fi
 elif [ -f "Pipfile" ]; then
     require_commands pipenv
-    run_command "pipenv install" "Installing Python dependencies with Pipenv"
+    echo "→ Installing Python dependencies with Pipenv"
+    pipenv install
 fi
 
 # Ruby
 if [ -f "Gemfile" ]; then
-    run_command "bundle install" "Installing Ruby dependencies"
+    echo "→ Installing Ruby dependencies"
+    bundle install
 fi
 
 # .NET
 if compgen -G "*.sln" > /dev/null; then
-    run_command "dotnet restore" "Restoring .NET dependencies"
+    echo "→ Restoring .NET dependencies"
+    dotnet restore
 fi
 
 # Go
 if [ -f "go.mod" ]; then
-    run_command "go mod download" "Downloading Go dependencies"
+    echo "→ Downloading Go dependencies"
+    go mod download
 fi
 
 # Rust
 if [ -f "Cargo.toml" ]; then
-    run_command "cargo fetch" "Fetching Rust dependencies"
+    echo "→ Fetching Rust dependencies"
+    cargo fetch
 fi
 
 print_color green "✓ Dependencies installed successfully"

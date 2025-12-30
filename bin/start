@@ -41,14 +41,15 @@ print_color blue "Starting application in $env mode..."
 # Node.js
 if [ -f "package.json" ]; then
     if grep -q '"start"' package.json; then
-        cmd="npm start"
         if [ -n "$port" ]; then
             export PORT="$port"
         fi
         export NODE_ENV="$env"
-        run_command "$cmd" "Starting Node.js application"
+        echo "→ Starting Node.js application"
+        exec npm start
     elif grep -q '"dev"' package.json; then
-        run_command "npm run dev" "Starting Node.js application (dev mode)"
+        echo "→ Starting Node.js application (dev mode)"
+        exec npm run dev
     fi
 fi
 
@@ -59,7 +60,8 @@ if [ -f "manage.py" ]; then
     if [ -n "$port" ]; then
         cmd="$cmd 0.0.0.0:$port"
     fi
-    run_command "$cmd" "Starting Django application"
+    echo "→ Starting Django application"
+    exec $cmd
 elif [ -f "app.py" ] || [ -f "main.py" ]; then
     # Flask/FastAPI
     if grep -q "flask" requirements.txt 2>/dev/null; then
@@ -69,15 +71,18 @@ elif [ -f "app.py" ] || [ -f "main.py" ]; then
         if [ -n "$port" ]; then
             cmd="$cmd --port $port"
         fi
-        run_command "$cmd" "Starting Flask application"
+        echo "→ Starting Flask application"
+        exec $cmd
     elif grep -q "fastapi" requirements.txt 2>/dev/null; then
         cmd="uvicorn main:app --reload"
         if [ -n "$port" ]; then
             cmd="$cmd --port $port"
         fi
-        run_command "$cmd" "Starting FastAPI application"
+        echo "→ Starting FastAPI application"
+        exec $cmd
     else
-        run_command "python3 ${MAIN_FILE:-main.py}" "Starting Python application"
+        echo "→ Starting Python application"
+        exec python3 "${MAIN_FILE:-main.py}"
     fi
 fi
 
@@ -89,39 +94,42 @@ if [ -f "Gemfile" ]; then
         if [ -n "$port" ]; then
             cmd="$cmd -p $port"
         fi
-        run_command "$cmd" "Starting Ruby application"
+        echo "→ Starting Ruby application"
+        exec $cmd
     elif grep -q "rails" Gemfile; then
         cmd="bundle exec rails server"
         if [ -n "$port" ]; then
             cmd="$cmd -p $port"
         fi
-        run_command "$cmd" "Starting Rails application"
+        echo "→ Starting Rails application"
+        exec $cmd
     fi
 fi
 
 # .NET
 if compgen -G "*.csproj" > /dev/null; then
-    project=$(ls *.csproj | grep -v Test | head -1)
-    cmd="dotnet run --project $project"
+    project=$(ls ./*.csproj | grep -v Test | head -1)
     if [ -n "$port" ]; then
         export ASPNETCORE_URLS="http://localhost:$port"
     fi
     export ASPNETCORE_ENVIRONMENT="${env^}"  # Capitalize first letter
-    run_command "$cmd" "Starting .NET application"
+    echo "→ Starting .NET application"
+    exec dotnet run --project "$project"
 fi
 
 # Go
 if [ -f "go.mod" ] && [ -f "main.go" ]; then
-    cmd="go run main.go"
     if [ -n "$port" ]; then
         export PORT="$port"
     fi
-    run_command "$cmd" "Starting Go application"
+    echo "→ Starting Go application"
+    exec go run main.go
 fi
 
 # Docker Compose
 if [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
-    run_command "docker-compose up" "Starting with Docker Compose"
+    echo "→ Starting with Docker Compose"
+    exec docker-compose up
 fi
 
 print_color green "✓ Application started"

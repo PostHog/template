@@ -1,64 +1,76 @@
 #!/usr/bin/env bash
 #/ Usage: bin/server
 #/ Description: Starts all necessary services (database, cache, etc.)
-#/ 
+#/
 #/ This script starts background services required by the application.
 #/ Use bin/start to run the application itself.
 
 source bin/helpers/_utils.sh
 set_source_and_root_dir
 parse_common_args "$@"
+set -e
 
 print_color blue "Starting services..."
 
 # Docker Compose services
 if [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
-    run_command "docker-compose up -d db redis" "Starting Docker services"
+    echo "→ Starting Docker services"
+    docker-compose up -d db redis
 
 # Individual services
 else
     # PostgreSQL
     if grep -q "postgres" Gemfile 2>/dev/null || grep -q "psycopg" requirements.txt 2>/dev/null || grep -q "pg" package.json 2>/dev/null; then
         if command_exists pg_ctl; then
-            run_command "pg_ctl start" "Starting PostgreSQL"
+            echo "→ Starting PostgreSQL"
+            pg_ctl start
         elif command_exists brew; then
-            run_command "brew services start postgresql" "Starting PostgreSQL"
+            echo "→ Starting PostgreSQL"
+            brew services start postgresql
         fi
     fi
-    
+
     # MySQL
     if grep -q "mysql" Gemfile 2>/dev/null || grep -q "mysql" requirements.txt 2>/dev/null || grep -q "mysql" package.json 2>/dev/null; then
         if command_exists mysql.server; then
-            run_command "mysql.server start" "Starting MySQL"
+            echo "→ Starting MySQL"
+            mysql.server start
         elif command_exists brew; then
-            run_command "brew services start mysql" "Starting MySQL"
+            echo "→ Starting MySQL"
+            brew services start mysql
         fi
     fi
-    
+
     # Redis
     if grep -q "redis" Gemfile 2>/dev/null || grep -q "redis" requirements.txt 2>/dev/null || grep -q "redis" package.json 2>/dev/null; then
         if command_exists redis-server; then
-            run_command "redis-server --daemonize yes" "Starting Redis"
+            echo "→ Starting Redis"
+            redis-server --daemonize yes
         elif command_exists brew; then
-            run_command "brew services start redis" "Starting Redis"
+            echo "→ Starting Redis"
+            brew services start redis
         fi
     fi
-    
+
     # MongoDB
     if grep -q "mongo" package.json 2>/dev/null || grep -q "pymongo" requirements.txt 2>/dev/null; then
         if command_exists mongod; then
-            run_command "mongod --fork --logpath /var/log/mongodb.log" "Starting MongoDB"
+            echo "→ Starting MongoDB"
+            mongod --fork --logpath /var/log/mongodb.log
         elif command_exists brew; then
-            run_command "brew services start mongodb-community" "Starting MongoDB"
+            echo "→ Starting MongoDB"
+            brew services start mongodb-community
         fi
     fi
-    
+
     # Elasticsearch
     if grep -q "elasticsearch" Gemfile 2>/dev/null || grep -q "elasticsearch" requirements.txt 2>/dev/null || grep -q "elasticsearch" package.json 2>/dev/null; then
         if command_exists elasticsearch; then
-            run_command "elasticsearch -d" "Starting Elasticsearch"
+            echo "→ Starting Elasticsearch"
+            elasticsearch -d
         elif command_exists brew; then
-            run_command "brew services start elasticsearch" "Starting Elasticsearch"
+            echo "→ Starting Elasticsearch"
+            brew services start elasticsearch
         fi
     fi
 fi
