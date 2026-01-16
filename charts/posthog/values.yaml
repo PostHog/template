@@ -1,0 +1,36 @@
+# PostHog Helm Chart Default Values
+# These are the recommended defaults for PostHog deployments
+
+# Default topology spread constraints for high availability
+# These ensure pods are evenly distributed across availability zones and nodes
+topologySpreadConstraints:
+  # Primary: evenly distribute across AZs
+  - maxSkew: 2
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    labelSelector:
+      matchLabels: {}
+    minDomains: 3
+    matchLabelKeys:
+      - pod-template-hash
+      - app
+      - release
+      - role
+      - app.kubernetes.io/name
+      - app.kubernetes.io/instance
+  # Secondary: spread across nodes within zones
+  - maxSkew: 2
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    labelSelector:
+      matchLabels: {}
+    minDomains: 5
+    matchLabelKeys:
+      - pod-template-hash
+      - app
+      - release
+      - role
+      - app.kubernetes.io/name
+      - app.kubernetes.io/instance
