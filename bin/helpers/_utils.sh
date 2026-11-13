@@ -58,7 +58,7 @@ require_commands() {
 
 # Show help from script comments
 show_help() {
-    sed -n 's/^#\/ \?//p' "$0"
+    sed -n 's/^#\/ \{0,1\}//p' "$0"
 }
 
 # Find process using a port
